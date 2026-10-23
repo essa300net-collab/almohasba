@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101713">
+<title>ZEED NET MANAGER</title>
+<style>
+:root{--bg:#0d120f;--panel:#171f1a;--panel2:#202a23;--green:#29c46a;--red:#ff5252;--text:#f3f7f4;--muted:#aab7ae;--line:#303c33}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+header{padding:20px 16px 14px;background:linear-gradient(130deg,#14251a,#101713 70%);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3}
+.brand{font-weight:900;font-size:21px;letter-spacing:.3px}.brand span{color:var(--green)}.sub{color:var(--muted);font-size:12px;margin-top:5px}
+main{padding:14px;max-width:850px;margin:auto;padding-bottom:90px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px;min-width:0}
+.metric-label{color:var(--muted);font-size:12px}.metric{font-size:23px;font-weight:850;margin-top:8px;overflow-wrap:anywhere}.green{color:var(--green)}.red{color:var(--red)}
+h2{font-size:17px;margin:20px 0 10px}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+button,.button{border:0;border-radius:11px;padding:12px 14px;background:var(--green);color:#07130b;font-weight:800;font-size:14px;cursor:pointer}
+button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}button.danger{background:#4b2020;color:#ffdada}
+input,select,textarea{width:100%;padding:12px;margin-top:6px;border-radius:10px;border:1px solid var(--line);background:#0e1510;color:var(--text);font:inherit}
+label{display:block;color:var(--muted);font-size:13px;margin-top:12px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.full{grid-column:1/-1}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.toolbar input{flex:1;min-width:150px;margin:0}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px;margin:9px 0}
+.itemtop{display:flex;justify-content:space-between;gap:10px;align-items:start}.name{font-weight:800}.small{font-size:12px;color:var(--muted);margin-top:5px}.amounts{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:13px}
+.pill{font-size:11px;border-radius:99px;padding:4px 8px;background:#183823;color:#8ff0b4;white-space:nowrap}.pill.redpill{background:#482323;color:#ffaaaa}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:5;background:#111813;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+.nav button{background:transparent;color:var(--muted);padding:8px 6px;font-size:11px;flex:1}.nav button.active{color:var(--green)}
+.hidden{display:none!important}.notice{background:#1d2d22;border:1px solid #2e573b;padding:12px;border-radius:12px;font-size:12px;color:#c7f6d5;line-height:1.7}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.rowbuttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.rowbuttons button{font-size:12px;padding:8px 10px}
+footer{text-align:center;color:#68776d;font-size:11px;margin:25px 0}
+@media(min-width:650px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.actions{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header><div class="brand"><span>ZEED NET</span> MANAGER</div><div class="sub">إدارة حسابات الشبكة • نسخة أولية مستقلة عن الميكروتيك</div></header>
+<main>
+<section id="dashboard">
+<div class="grid">
+<div class="card"><div class="metric-label">عدد المشتركين</div><div class="metric" id="mCount">0</div></div>
+<div class="card"><div class="metric-label">إجمالي المقبوضات</div><div class="metric green" id="mPaid">0</div></div>
+<div class="card"><div class="metric-label">الديون المتبقية</div><div class="metric red" id="mDebt">0</div></div>
+<div class="card"><div class="metric-label">مصروفات مسجلة</div><div class="metric" id="mExpense">0</div></div>
+</div>
+<h2>إجراءات سريعة</h2>
+<div class="actions">
+<button onclick="show('customers');openCustomerForm()">＋ إضافة مشترك</button>
+<button onclick="show('payments');openPaymentForm()">＋ تسجيل دفعة</button>
+<button class="secondary" onclick="show('expenses');openExpenseForm()">－ تسجيل مصروف</button>
+<button class="secondary" onclick="show('reports')">▤ التقارير</button>
+</div>
+<h2>آخر الحركات المالية</h2><div id="recent"></div>
+<div class="notice">مهم: هذه نسخة أولية تحفظ البيانات محلياً في المتصفح على هذا الهاتف. استخدم «نسخ احتياطي» بانتظام، ولا تعتمد عليها وحدها لحفظ سجلات مالية مهمة قبل اختبارها جيداً.</div>
+</section>
+
+<section id="customers" class="hidden">
+<h2>إدارة المشتركين</h2>
+<div class="toolbar"><input id="customerSearch" placeholder="ابحث بالاسم أو الهاتف أو اسم المستخدم" oninput="renderCustomers()"><button onclick="openCustomerForm()">＋ جديد</button></div>
+<div id="customerForm" class="card hidden">
+<h2 id="customerFormTitle">إضافة مشترك</h2>
+<form onsubmit="saveCustomer(event)">
+<input type="hidden" id="cId">
+<div class="form">
+<div><label>اسم المشترك *</label><input id="cName" required></div>
+<div><label>رقم الهاتف</label><input id="cPhone" inputmode="tel"></div>
+<div><label>اسم المستخدم</label><input id="cUser"></div>
+<div><label>قيمة الاشتراك</label><input id="cFee" type="number" min="0" step="any" value="0"></div>
+<div><label>المبلغ المدفوع عند التسجيل</label><input id="cInitialPaid" type="number" min="0" step="any" value="0"></div>
+<div><label>نوع الاشتراك</label><select id="cPlan"><option>شهري</option><option>أسبوعي</option><option>يومي</option><option>مخصص</option></select></div>
+<div class="full"><label>ملاحظات</label><textarea id="cNotes" rows="2"></textarea></div>
+</div>
+<div class="rowbuttons"><button type="submit">حفظ المشترك</button><button type="button" class="secondary" onclick="closeForms()">إلغاء</button></div>
+</form></div>
+<div id="customerList"></div>
+</section>
+
+<section id="payments" class="hidden">
+<h2>تسجيل دفعة</h2>
+<div class="card">
+<form onsubmit="savePayment(event)">
+<label>المشترك *</label><select id="pCustomer" required></select>
+<div class="form"><div><label>المبلغ *</label><input id="pAmount" type="number" min="0.01" step="any" required></div><div><label>التاريخ</label><input id="pDate" type="date" required></div></div>
+<label>ملاحظات / رقم إيصال</label><input id="pNote">
+<div class="rowbuttons"><button type="submit">حفظ الدفعة</button></div>
+</form></div>
+<h2>سجل الدفعات</h2><div id="paymentList"></div>
+</section>
+
+<section id="expenses" class="hidden">
+<h2>تسجيل مصروف</h2>
+<div class="card"><form onsubmit="saveExpense(event)">
+<div class="form"><div class="full"><label>بند المصروف *</label><input id="eTitle" required placeholder="مثلاً: إنترنت فضائي أو صيانة"></div><div><label>المبلغ *</label><input id="eAmount" type="number" min="0.01" step="any" required></div><div><label>التاريخ</label><input id="eDate" type="date" required></div><div class="full"><label>ملاحظات</label><input id="eNote"></div></div>
+<div class="rowbuttons"><button type="submit">حفظ المصروف</button></div></form></div>
+<h2>سجل المصروفات</h2><div id="expenseList"></div>
+</section>
+
+<section id="reports" class="hidden">
+<h2>التقارير المالية</h2>
+<div class="grid">
+<div class="card"><div class="metric-label">إجمالي المقبوضات</div><div class="metric green" id="rPaid">0</div></div>
+<div class="card"><div class="metric-label">إجمالي المصروفات</div><div class="metric red" id="rExpense">0</div></div>
+<div class="card"><div class="metric-label">صافي الحركة النقدية</div><div class="metric" id="rNet">0</div></div>
+<div class="card"><div class="metric-label">الديون الحالية</div><div class="metric red" id="rDebt">0</div></div>
+</div>
+<label>تصفية حسب الشهر</label><input type="month" id="reportMonth" onchange="renderReports()">
+<div class="rowbuttons"><button onclick="exportCSV()">تصدير المشتركين CSV</button><button class="secondary" onclick="backup()">نسخ احتياطي JSON</button><button class="secondary" onclick="document.getElementById('restoreFile').click()">استعادة نسخة</button><input class="hidden" type="file" id="restoreFile" accept=".json,application/json" onchange="restoreBackup(event)"></div>
+<div class="notice">صافي الحركة النقدية = المقبوضات المسجلة − المصروفات المسجلة. الديون تقدير محاسبي مبني على قيمة الاشتراك المسجلة لكل مشترك ناقص مجموع دفعاته؛ عدّل قيمة الاشتراك أو سجّل دفعة جديدة عند الحاجة.</div>
+</section>
+<footer>ZEED NET MANAGER • الإصدار التجريبي 0.1</footer>
+</main>
+<nav class="nav">
+<button class="active" data-tab="dashboard" onclick="show('dashboard')">⌂<br>الرئيسية</button>
+<button data-tab="customers" onclick="show('customers')">♙<br>المشتركون</button>
+<button data-tab="payments" onclick="show('payments')">＋<br>الدفعات</button>
+<button data-tab="expenses" onclick="show('expenses')">−<br>المصروفات</button>
+<button data-tab="reports" onclick="show('reports')">▤<br>التقارير</button>
+</nav>
+<script>
+const KEY='zeedNetManager_v1';
+let db={customers:[],payments:[],expenses:[]};
+const $=id=>document.getElementById(id);
+const num=n=>Number(n||0);
+const money=n=>new Intl.NumberFormat('ar',{maximumFractionDigits:2}).format(num(n));
+const today=()=>new Date().toISOString().slice(0,10);
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.customers))db={customers:d.customers,payments:d.payments||[],expenses:d.expenses||[]}}catch(e){}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function paidFor(id){return db.payments.filter(p=>p.customerId===id).reduce((a,p)=>a+num(p.amount),0)}
+function debtFor(c){return Math.max(0,num(c.fee)-paidFor(c.id))}
+function show(tab){document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));$(tab).classList.remove('hidden');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));closeForms();renderAll()}
+function openCustomerForm(c=null){$('customerForm').classList.remove('hidden');$('customerFormTitle').textContent=c?'تعديل بيانات مشترك':'إضافة مشترك';$('cId').value=c?.id||'';$('cName').value=c?.name||'';$('cPhone').value=c?.phone||'';$('cUser').value=c?.user||'';$('cFee').value=c?.fee??0;$('cInitialPaid').value=0;$('cPlan').value=c?.plan||'شهري';$('cNotes').value=c?.notes||'';if(c)$('cInitialPaid').disabled=true;else $('cInitialPaid').disabled=false;$('customerForm').scrollIntoView({behavior:'smooth',block:'start'})}
+function closeForms(){$('customerForm').classList.add('hidden')}
+function saveCustomer(e){e.preventDefault();const id=$('cId').value;const data={id:id||crypto.randomUUID(),name:$('cName').value.trim(),phone:$('cPhone').value.trim(),user:$('cUser').value.trim(),fee:num($('cFee').value),plan:$('cPlan').value,notes:$('cNotes').value.trim()};if(id){const i=db.customers.findIndex(c=>c.id===id);if(i>=0)db.customers[i]={...db.customers[i],...data}}else{db.customers.push(data);const first=num($('cInitialPaid').value);if(first>0)db.payments.push({id:crypto.randomUUID(),customerId:data.id,amount:first,date:today(),note:'دفعة عند التسجيل'})}closeForms();persist();show('customers')}
+function removeCustomer(id){if(!confirm('حذف المشترك؟ لن تُحذف دفعاته تلقائياً.'))return;db.customers=db.customers.filter(c=>c.id!==id);persist()}
+function renderCustomers(){const q=($('customerSearch')?.value||'').trim().toLowerCase();const list=db.customers.filter(c=>[c.name,c.phone,c.user].some(v=>String(v||'').toLowerCase().includes(q)));$('customerList').innerHTML=list.length?list.map(c=>`<div class="item"><div class="itemtop"><div><div class="name">${esc(c.name)}</div><div class="small">${esc(c.phone||'لا يوجد هاتف')} • ${esc(c.user||'لا يوجد اسم مستخدم')} • ${esc(c.plan||'')}</div></div><span class="pill ${debtFor(c)>0?'redpill':''}">${debtFor(c)>0?'عليه دين':'مسدد'}</span></div><div class="amounts"><span>الاشتراك: <b>${money(c.fee)}</b></span><span>المدفوع: <b class="green">${money(paidFor(c.id))}</b></span><span>المتبقي: <b class="red">${money(debtFor(c))}</b></span></div><div class="rowbuttons"><button onclick="quickPay('${c.id}')">تسجيل دفعة</button><button class="secondary" onclick="openCustomerForm(db.customers.find(x=>x.id==='${c.id}'))">تعديل</button><button class="danger" onclick="removeCustomer('${c.id}')">حذف</button></div></div>`).join(''):'<div class="empty">لا يوجد مشتركون بعد. اضغط «جديد» لإضافة أول مشترك.</div>'}
+function quickPay(id){show('payments');$('pCustomer').value=id;$('pAmount').focus()}
+function openPaymentForm(){$('pDate').value=today();$('pAmount').value='';$('pNote').value='';fillCustomerSelect()}
+function fillCustomerSelect(){const s=$('pCustomer');const old=s.value;s.innerHTML=db.customers.map(c=>`<option value="${c.id}">${esc(c.name)} — متبقي ${money(debtFor(c))}</option>`).join('');if(old)s.value=old}
+function savePayment(e){e.preventDefault();const id=$('pCustomer').value;if(!id){alert('أضف مشتركاً أولاً');return}db.payments.push({id:crypto.randomUUID(),customerId:id,amount:num($('pAmount').value),date:$('pDate').value,note:$('pNote').value.trim()});persist();openPaymentForm();alert('تم حفظ الدفعة')}
+function saveExpense(e){e.preventDefault();db.expenses.push({id:crypto.randomUUID(),title:$('eTitle').value.trim(),amount:num($('eAmount').value),date:$('eDate').value,note:$('eNote').value.trim()});persist();$('eTitle').value='';$('eAmount').value='';$('eNote').value='';alert('تم حفظ المصروف')}
+function removePayment(id){if(confirm('حذف هذه الدفعة؟')){db.payments=db.payments.filter(p=>p.id!==id);persist()}}
+function removeExpense(id){if(confirm('حذف هذا المصروف؟')){db.expenses=db.expenses.filter(x=>x.id!==id);persist()}}
+function renderPayments(){$('paymentList').innerHTML=db.payments.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(p=>{const c=db.customers.find(c=>c.id===p.customerId);return `<div class="item"><div class="itemtop"><div><div class="name">${esc(c?.name||'مشترك محذوف')}</div><div class="small">${esc(p.date)} • ${esc(p.note||'دفعة اشتراك')}</div></div><b class="green">${money(p.amount)}</b></div><div class="rowbuttons"><button class="danger" onclick="removePayment('${p.id}')">حذف الدفعة</button></div></div>`}).join('')||'<div class="empty">لا توجد دفعات مسجلة.</div>'}
+function renderExpenses(){$('expenseList').innerHTML=db.expenses.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><div class="itemtop"><div><div class="name">${esc(x.title)}</div><div class="small">${esc(x.date)} • ${esc(x.note||'')}</div></div><b class="red">${money(x.amount)}</b></div><div class="rowbuttons"><button class="danger" onclick="removeExpense('${x.id}')">حذف المصروف</button></div></div>`).join('')||'<div class="empty">لا توجد مصروفات مسجلة.</div>'}
+function renderReports(){const month=$('reportMonth').value;const ps=db.payments.filter(p=>!month||p.date.startsWith(month));const es=db.expenses.filter(x=>!month||x.date.startsWith(month));const paid=ps.reduce((a,p)=>a+num(p.amount),0),exp=es.reduce((a,x)=>a+num(x.amount),0),debt=db.customers.reduce((a,c)=>a+debtFor(c),0);$('rPaid').textContent=money(paid);$('rExpense').textContent=money(exp);$('rNet').textContent=money(paid-exp);$('rDebt').textContent=money(debt)}
+function renderDashboard(){const paid=db.payments.reduce((a,p)=>a+num(p.amount),0),exp=db.expenses.reduce((a,x)=>a+num(x.amount),0),debt=db.customers.reduce((a,c)=>a+debtFor(c),0);$('mCount').textContent=money(db.customers.length);$('mPaid').textContent=money(paid);$('mDebt').textContent=money(debt);$('mExpense').textContent=money(exp);const acts=[...db.payments.map(p=>({...p,kind:'قبض',label:db.customers.find(c=>c.id===p.customerId)?.name||'مشترك',negative:false})),...db.expenses.map(x=>({...x,kind:'مصروف',label:x.title,negative:true}))].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);$('recent').innerHTML=acts.map(a=>`<div class="item"><div class="itemtop"><div><div class="name">${esc(a.kind)}: ${esc(a.label)}</div><div class="small">${esc(a.date)}</div></div><b class="${a.negative?'red':'green'}">${a.negative?'−':'+'}${money(a.amount)}</b></div></div>`).join('')||'<div class="empty">ستظهر هنا أحدث الحركات بعد تسجيلها.</div>'}
+function renderAll(){renderDashboard();renderCustomers();fillCustomerSelect();renderPayments();renderExpenses();renderReports()}
+function backup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});downloadBlob(blob,'ZEED_NET_backup_'+today()+'.json')}
+function exportCSV(){const rows=[['الاسم','الهاتف','اسم المستخدم','نوع الاشتراك','قيمة الاشتراك','إجمالي المدفوع','المتبقي'],...db.customers.map(c=>[c.name,c.phone,c.user,c.plan,c.fee,paidFor(c.id),debtFor(c)])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'ZEED_NET_customers_'+today()+'.csv')}
+function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function restoreBackup(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.customers)||!Array.isArray(d.payments)||!Array.isArray(d.expenses))throw 0;if(confirm('ستستبدل الاستعادة البيانات الحالية. هل أنشأت نسخة احتياطية؟')){db=d;persist();alert('تمت الاستعادة')}}catch(err){alert('ملف النسخة الاحتياطية غير صالح')}e.target.value=''};r.readAsText(f)}
+load();$('pDate').value=today();$('eDate').value=today();$('reportMonth').value=today().slice(0,7);renderAll();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
